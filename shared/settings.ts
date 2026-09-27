@@ -5,6 +5,8 @@ export type ResizeMode = "none" | "exact" | "width" | "height" | "percent";
 export interface ConvertSettings {
   format: OutputFormat;
   quality: number; // 1-100
+  /** When set, quality is chosen per image (highest that fits) to keep each output at or under this many KB. */
+  targetKB?: number;
   resize: {
     mode: ResizeMode;
     width?: number;
@@ -34,6 +36,8 @@ export function parseSettings(input: unknown): ConvertSettings {
   if (!OUTPUT_FORMATS.includes(s.format)) throw new Error("Unsupported output format");
   const quality = clampInt(s.quality, 1, 100);
   if (quality === undefined) throw new Error("Invalid quality");
+  const targetKB = s.targetKB == null || s.targetKB === "" ? undefined : clampInt(s.targetKB, 1, 100_000);
+  if (s.targetKB != null && s.targetKB !== "" && targetKB === undefined) throw new Error("Invalid target size");
   const r = s.resize ?? {};
   const modes: ResizeMode[] = ["none", "exact", "width", "height", "percent"];
   if (!modes.includes(r.mode)) throw new Error("Invalid resize mode");
@@ -49,7 +53,7 @@ export function parseSettings(input: unknown): ConvertSettings {
   if ((resize.mode === "exact" || resize.mode === "height") && !resize.height) throw new Error("Height is required");
   if (resize.mode === "percent" && !resize.percent) throw new Error("Percentage is required");
   if (s.metadata !== "strip" && s.metadata !== "preserve") throw new Error("Invalid metadata option");
-  return { format: s.format, quality, resize, metadata: s.metadata };
+  return { format: s.format, quality, targetKB, resize, metadata: s.metadata };
 }
 
 /** Stable key used to tell whether an output still matches current settings. */
@@ -61,7 +65,7 @@ export function settingsKey(s: ConvertSettings): string {
       : `${r.mode}:${r.mode === "exact" || r.mode === "width" ? r.width : ""}x${
           r.mode === "exact" || r.mode === "height" ? r.height : ""
         }:${r.mode === "percent" ? r.percent : ""}:${r.lockAspect ? 1 : 0}:${r.withoutEnlargement ? 1 : 0}`;
-  return `${s.format}|${s.quality}|${rk}|${s.metadata}`;
+  return `${s.format}|${s.targetKB ? `t${s.targetKB}` : s.quality}|${rk}|${s.metadata}`;
 }
 
 /** Predict output dimensions without decoding (used for UI before an estimate returns). */

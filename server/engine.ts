@@ -99,12 +99,11 @@ export async function thumbnail(path: string, out: string) {
   await img.autoOrient().resize(160, 160, { fit: "cover" }).webp({ quality: 70 }).toFile(out);
 }
 
-function pipeline(img: Sharp, src: SourceInfo, s: ConvertSettings, animated: boolean) {
+function pipeline(img: Sharp, src: SourceInfo, s: ConvertSettings, animated: boolean, q = s.quality) {
   img = img.autoOrient();
   const dims = targetDimensions(src.width, src.height, s.resize);
   if (dims.width !== src.width || dims.height !== src.height) img = img.resize(dims.width, dims.height, { fit: "fill" });
   if (s.metadata === "preserve") img = img.keepMetadata();
-  const q = s.quality;
   switch (s.format) {
     case "webp":
       img = img.webp({ quality: q, effort: 4, ...(animated ? { loop: 0 } : {}) });
@@ -128,25 +127,48 @@ export interface EncodeResult {
   size: number;
   width: number;
   height: number;
+  quality: number; // quality actually used (differs from settings when targetKB is set)
 }
 
-async function build(path: string, src: SourceInfo, s: ConvertSettings) {
+async function encode(path: string, src: SourceInfo, s: ConvertSettings, q: number) {
   const animated = src.pages > 1 && s.format === "webp" && src.format !== "bmp";
   const { img } = await open(path, { animated });
-  return { ...pipeline(img, src, s, animated), animated };
+  const { img: out, dims } = pipeline(img, src, s, animated, q);
+  const data = await out.toBuffer();
+  return { data, dims };
+}
+
+/**
+ * Encode at settings.quality, or with targetKB set, binary-search for the highest
+ * quality whose output fits. If nothing fits, the smallest (quality 1) is returned.
+ */
+async function encodeBest(path: string, src: SourceInfo, s: ConvertSettings) {
+  if (!s.targetKB) return { ...(await encode(path, src, s, s.quality)), quality: s.quality };
+  const limit = s.targetKB * 1024;
+  let lo = 1;
+  let hi = 100;
+  let best: { data: Buffer; dims: { width: number; height: number }; quality: number } | undefined;
+  while (lo <= hi) {
+    const q = (lo + hi) >> 1;
+    const r = await encode(path, src, s, q);
+    if (r.data.length <= limit) {
+      best = { ...r, quality: q };
+      lo = q + 1;
+    } else hi = q - 1;
+  }
+  return best ?? { ...(await encode(path, src, s, 1)), quality: 1 };
 }
 
 /** Real test encode in memory; nothing is written to disk. */
 export async function estimate(path: string, src: SourceInfo, s: ConvertSettings): Promise<EncodeResult> {
-  const { img, dims } = await build(path, src, s);
-  const { info } = await img.toBuffer({ resolveWithObject: true });
-  return { size: info.size, width: dims.width, height: dims.height };
+  const { data, dims, quality } = await encodeBest(path, src, s);
+  return { size: data.length, width: dims.width, height: dims.height, quality };
 }
 
 export async function convert(path: string, src: SourceInfo, s: ConvertSettings, out: string): Promise<EncodeResult> {
-  const { img, dims } = await build(path, src, s);
-  const info = await img.toFile(out);
-  return { size: info.size, width: dims.width, height: dims.height };
+  const { data, dims, quality } = await encodeBest(path, src, s);
+  await fs.writeFile(out, data);
+  return { size: data.length, width: dims.width, height: dims.height, quality };
 }
 
 // ---------------------------------------------------------------------------

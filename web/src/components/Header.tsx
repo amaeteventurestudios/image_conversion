@@ -19,10 +19,10 @@ export function Header({ me, onLogout }: { me: Me; onLogout: () => void }) {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-3 px-4 sm:px-8">
+      <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-2 px-3 sm:gap-3 sm:px-8">
         <Logo />
-        <span className="text-xl font-semibold tracking-tight">Images</span>
-        <span className="rounded-md bg-accent px-2 py-0.5 text-[11px] font-semibold tracking-wide text-muted-foreground">BETA</span>
+        <span className="min-w-0 truncate text-sm font-semibold tracking-tight sm:text-xl">Amaete Image Optimizer</span>
+        <span className="hidden rounded-md bg-accent px-2 py-0.5 text-[11px] sm:inline font-semibold tracking-wide text-muted-foreground">BETA</span>
         <div className="flex-1" />
         <Button variant="ghost" size="icon" onClick={toggle} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
           {theme === "dark" ? <Moon /> : <Sun />}
