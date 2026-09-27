@@ -140,7 +140,7 @@ export function Converter({ me, onLogout }: { me: Me; onLogout: () => void }) {
       <Header me={me} onLogout={onLogout} />
       <main className="mx-auto max-w-[1600px] px-4 pt-8 sm:px-8">
         <div className="flex flex-wrap items-start gap-4">
-          <div className="min-w-0 flex-1">
+          <div className="min-w-[min(100%,20rem)] flex-1">
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Convert &amp; Rename Images</h1>
             <p className="mt-2 text-muted-foreground">
               Batch convert, rename, and optimize your images. Upload PNG, JPG and more — get WebP, AVIF, or JPG in seconds.
