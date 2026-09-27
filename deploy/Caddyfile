@@ -1,0 +1,16 @@
+# Caddy with the Cloudflare DNS plugin, so HTTPS certificates are issued even
+# though images.amaete.com only resolves to a private Tailscale address.
+# Build/install: see docs/DEPLOY-PI.md step 4.
+images.amaete.com {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	}
+	request_body {
+		max_size 64MB
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Robots-Tag "noindex, nofollow, noarchive, nosnippet"
+	}
+	reverse_proxy 127.0.0.1:3000
+}

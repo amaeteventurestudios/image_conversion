@@ -1,0 +1,16 @@
+services:
+  images:
+    build: .
+    container_name: images
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      DATA_DIR: /data
+      TRUST_PROXY: "1"  # exactly one proxy (Caddy) in front
+    volumes:
+      - ./data:/data
+    # Only reachable from this machine; Caddy (or Tailscale Serve) fronts it.
+    ports:
+      - "127.0.0.1:3000:3000"
+    mem_limit: 1g
