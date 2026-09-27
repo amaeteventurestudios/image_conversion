@@ -1,4 +1,4 @@
-# Images — Private Image Converter
+# Amaete Image Optimizer
 
 A small, self-hosted, password-protected web app for batch converting, compressing,
 resizing, stripping metadata from and renaming images.

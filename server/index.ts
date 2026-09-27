@@ -388,5 +388,5 @@ if (!users) {
 }
 
 app.listen(config.port, config.host, () => {
-  console.log(`Private Image Converter listening on http://${config.host}:${config.port}`);
+  console.log(`Amaete Image Optimizer listening on http://${config.host}:${config.port}`);
 });

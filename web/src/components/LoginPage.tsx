@@ -47,7 +47,7 @@ export function LoginPage({ onLogin, notice }: { onLogin: (m: Me) => void; notic
       </Button>
       <div className="mb-8 flex items-center gap-3">
         <Logo className="size-10" />
-        <span className="text-2xl font-semibold">Images</span>
+        <span className="text-2xl font-semibold">Amaete Image Optimizer</span>
       </div>
       <Card className="w-full max-w-sm p-6">
         <h1 className="text-lg font-semibold">Sign in</h1>
@@ -112,7 +112,7 @@ export function LoginPage({ onLogin, notice }: { onLogin: (m: Me) => void; notic
         description="For security, passwords can only be reset by someone with access to the server."
         footer={<Button onClick={() => setForgot(false)}>Close</Button>}
       >
-        <p className="text-sm text-muted-foreground">On the machine running Images, open a terminal in the app folder and run:</p>
+        <p className="text-sm text-muted-foreground">On the machine running Amaete Image Optimizer, open a terminal in the app folder and run:</p>
         <pre className="mt-3 overflow-x-auto rounded-lg bg-muted p-3 text-xs">npm run user -- reset-password &lt;username&gt;</pre>
         <p className="mt-3 text-sm text-muted-foreground">This sets a new password and signs out every device.</p>
       </Dialog>
