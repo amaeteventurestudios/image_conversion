@@ -23,7 +23,7 @@ export interface RowView {
   finalName: string;
   status: RowStatus;
   estimate?: Estimate;
-  actual?: { size: number; width: number; height: number };
+  actual?: { size: number; width: number; height: number; quality?: number };
 }
 
 const STATUS_STYLE: Record<RowStatus["kind"], string> = {

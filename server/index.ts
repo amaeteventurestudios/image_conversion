@@ -14,7 +14,7 @@ import {
   type AuthedRequest,
 } from "./auth.ts";
 import * as store from "./store.ts";
-import { convert, estimate, ImageError, inspect, thumbnail, withSlot } from "./engine.ts";
+import { convert, estimate, ImageError, inspect, thumbnail, withSlot, type EncodeResult } from "./engine.ts";
 import { parseSettings, settingsKey } from "../shared/settings.ts";
 import { EXTENSIONS, baseName, safeBase, uniquify } from "../shared/naming.ts";
 
@@ -176,7 +176,7 @@ function publicFile(f: store.StoredFile) {
     metadata: f.info.metadata,
     createdAt: f.createdAt,
     output: f.output
-      ? { size: f.output.size, width: f.output.width, height: f.output.height, format: f.output.format, settingsKey: f.output.settingsKey, name: f.output.name }
+      ? { size: f.output.size, width: f.output.width, height: f.output.height, quality: f.output.quality, format: f.output.format, settingsKey: f.output.settingsKey, name: f.output.name }
       : null,
   };
 }
@@ -244,7 +244,7 @@ api.delete("/files", (req, res) => {
 });
 
 // Estimate cache: identical settings on the same file are encoded only once.
-const estimates = new Map<string, { size: number; width: number; height: number }>();
+const estimates = new Map<string, EncodeResult>();
 
 api.post(
   "/files/:id/estimate",
@@ -290,7 +290,11 @@ api.post(
     const name = outputName(f, req.body?.name, settings.format);
     const out = path.join(f.dir, `output.${EXTENSIONS[settings.format]}`);
     try {
-      const result = await withSlot("high", () => convert(f.sourcePath, f.info, settings, out + ".tmp"));
+      // With a target size, reuse the quality the estimate already found (encoding is
+      // deterministic), so converting costs one encode instead of a full search.
+      const known = settings.targetKB ? estimates.get(`${f.id}|${settingsKey(settings)}`)?.quality : undefined;
+      const encodeWith = known ? { ...settings, quality: known, targetKB: undefined } : settings;
+      const result = await withSlot("high", () => convert(f.sourcePath, f.info, encodeWith, out + ".tmp"));
       if (f.output && f.output.path !== out) fs.rm(f.output.path, { force: true }, () => {});
       fs.renameSync(out + ".tmp", out);
       f.output = { ...result, path: out, format: settings.format, settingsKey: settingsKey(settings), name };

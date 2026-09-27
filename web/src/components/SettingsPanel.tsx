@@ -141,9 +141,11 @@ export function OutputCard({
       </div>
 
       <div className="mt-6 flex items-center justify-between">
-        <label htmlFor="quality" className="text-sm font-semibold">Quality: {settings.quality}%</label>
+        <label htmlFor="quality" className="text-sm font-semibold">
+          Quality: {settings.targetKB ? "auto" : `${settings.quality}%`}
+        </label>
       </div>
-      <div className="mt-3 flex items-center gap-4">
+      <div className={cn("mt-3 flex items-center gap-4", settings.targetKB && "pointer-events-none opacity-40")} aria-disabled={!!settings.targetKB}>
         <input
           id="quality"
           type="range"
@@ -167,6 +169,41 @@ export function OutputCard({
           className="h-11 w-16 text-center"
         />
       </div>
+
+      <div className="mt-4">
+        <label htmlFor="target-kb" className="mb-2 block text-sm font-medium">
+          Target file size <span className="font-normal text-muted-foreground">(optional)</span>
+        </label>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Input
+              id="target-kb"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={100000}
+              placeholder="e.g. 200"
+              value={settings.targetKB ?? ""}
+              onChange={(e) => {
+                const n = Math.round(Number(e.target.value));
+                set({ targetKB: e.target.value === "" || !Number.isFinite(n) || n < 1 ? undefined : Math.min(100000, n) });
+              }}
+              className="pr-10"
+            />
+            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-muted-foreground">KB</span>
+          </div>
+          {settings.targetKB && (
+            <Button variant="outline" className="h-11" onClick={() => set({ targetKB: undefined })}>Clear</Button>
+          )}
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          {settings.targetKB
+            ? `Each image gets the highest quality that keeps it at or under ${settings.targetKB} KB. If an image can't get that small, turn on Resize.`
+            : "Leave empty to use the quality slider."}
+          {settings.targetKB && settings.format === "avif" && " AVIF is slow to encode, so hitting a target size with it takes noticeably longer."}
+        </p>
+      </div>
+
       {settings.format === "png" && (
         <p className="mt-2 text-xs text-muted-foreground">
           PNG is lossless. Below 100, colours are reduced to a palette (like pngquant) to shrink files; 100 keeps full colour.

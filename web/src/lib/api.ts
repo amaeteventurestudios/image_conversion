@@ -44,7 +44,7 @@ export interface ServerFile {
   hasAlpha: boolean;
   metadata: { exif: boolean; icc: boolean; xmp: boolean; iptc: boolean };
   createdAt: number;
-  output: { size: number; width: number; height: number; format: string; settingsKey: string; name: string } | null;
+  output: { size: number; width: number; height: number; quality?: number; format: string; settingsKey: string; name: string } | null;
 }
 
 /** Upload one file with progress (fetch cannot report upload progress). */

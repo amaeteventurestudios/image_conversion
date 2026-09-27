@@ -25,7 +25,8 @@ export function SinglePreview({ row, settings }: { row: RowView; settings: Conve
           {row.item.estimating && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
         </div>
         <div className="mt-1 text-sm text-muted-foreground">
-          {FORMAT_LABEL[settings.format]} · Quality {settings.quality}
+          {FORMAT_LABEL[settings.format]} · Quality {out?.quality ?? (settings.targetKB ? "auto" : settings.quality)}
+          {settings.targetKB && <> · target ≤ {settings.targetKB} KB</>}
           {dims && <> · {dims.width} × {dims.height}</>}
         </div>
       </Tile>

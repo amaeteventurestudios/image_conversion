@@ -7,6 +7,7 @@ export interface Estimate {
   size: number;
   width: number;
   height: number;
+  quality?: number;
 }
 
 export interface Item {
