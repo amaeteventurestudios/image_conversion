@@ -52,6 +52,7 @@ sudo usermod -aG docker $USER && newgrp docker
 
 git clone <your-repo-url> /opt/images && cd /opt/images
 cp .env.example .env            # defaults are fine; CONCURRENCY=2 suits a Pi 4
+mkdir -p data && sudo chown 1000:1000 data   # container runs as uid 1000 (node); Docker would create it root-owned
 docker compose up -d --build    # first build on a Pi takes a few minutes
 docker compose exec images node_modules/.bin/tsx server/cli.ts create amaete
 ```
